@@ -7,6 +7,7 @@ import { PqrsdComment } from '../entities/pqrsd-comment.entity';
 import { PqrsdAttachment } from '../entities/pqrsd-attachment.entity';
 import { PqrsdStatusHistory } from '../entities/pqrsd-status-history.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
       PqrsdStatusHistory,
     ]),
   NotificationsModule,
+  FilesModule,
   ],
   controllers: [PqrsdController],
   providers: [PqrsdService],

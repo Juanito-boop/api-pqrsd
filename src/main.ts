@@ -63,6 +63,7 @@ async function bootstrap() {
 
   console.log(`🚀 Aplicación ejecutándose en: http://localhost:${port}`);
   console.log(`📚 Documentación API: http://localhost:${port}/api/docs`);
+  console.log(`🐋 Docker MinIO Consola: http://localhost:9090/`);
 }
 
 bootstrap();

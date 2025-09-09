@@ -67,16 +67,9 @@ export class FilesController {
     description: 'Archivo descargado',
   })
   async downloadFile(@Param('id') id: string, @Res() res: Response) {
-    const attachment = await this.filesService.getAttachment(id);
-    
-    res.set({
-      'Content-Type': attachment.mimeType,
-      'Content-Disposition': `attachment; filename="${attachment.originalName}"`,
-      'Content-Length': attachment.fileSize,
-    });
-
-    const fileStream = createReadStream(attachment.filePath);
-    fileStream.pipe(res);
+    // Generate presigned URL from MinIO and redirect the client to download directly
+    const url = await this.filesService.getDownloadUrl(id, 60);
+    return res.redirect(url);
   }
 
   @Delete(':id')

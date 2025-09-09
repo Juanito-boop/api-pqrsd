@@ -10,6 +10,7 @@ import {
   Request,
   UseInterceptors,
   UploadedFiles,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import {
@@ -33,6 +34,7 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '../common/enums/user-role.enum';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
+import { FilesService } from '../files/files.service';
 
 @ApiTags('PQRSD')
 @ApiConsumes('multipart/form-data')
@@ -42,14 +44,36 @@ export class PqrsdController {
     private readonly pqrsdService: PqrsdService,
     @InjectRepository(PqrsdAttachment)
     private readonly attachmentRepository: Repository<PqrsdAttachment>,
+    private readonly filesService: FilesService,
   ) {}
 
   @Public()
   @Post('submit')
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Crear nueva PQRSD (público)' })
   @ApiResponse({ status: 201, description: 'PQRSD creada exitosamente', })
-  async submit(@Body() createPqrsdDto: CreatePqrsdDto) {
-    return this.pqrsdService.create(createPqrsdDto);
+  async submit(
+    @Body() createPqrsdDto: CreatePqrsdDto,
+    @UploadedFiles() files: Express.Multer.File[],
+    ) {
+    // Crear la PQRSD primero
+    const pqrsd = await this.pqrsdService.create(createPqrsdDto);
+
+    let attachments = [];
+
+    // Si hay archivos, subirlos y asociarlos
+    if (files && files.length > 0) {
+      try {
+        attachments = await this.filesService.uploadFiles(pqrsd.id, files);
+      } catch (error) {
+        // Si falla la subida de archivos, eliminar la PQRSD creada para mantener consistencia
+        await this.pqrsdService.remove(pqrsd.id);
+        throw new InternalServerErrorException('Error al subir archivos adjuntos. PQRSD eliminada para mantener consistencia.');
+      }
+    }
+
+    return { ...pqrsd, attachments };
   }
 
   @Public()

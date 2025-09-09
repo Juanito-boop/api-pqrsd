@@ -50,3 +50,5 @@ uploads/
 #AI
 .bolt/
 structure.json
+.github
+data

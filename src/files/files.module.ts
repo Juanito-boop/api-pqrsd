@@ -2,25 +2,20 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { diskStorage } from 'multer';
+import { memoryStorage } from 'multer';
 import { extname } from 'path';
 import { FilesService } from './files.service';
 import { FilesController } from './files.controller';
 import { PqrsdAttachment } from '../entities/pqrsd-attachment.entity';
+import { PqrsdRequest } from '../entities/pqrsd-request.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PqrsdAttachment]),
+    TypeOrmModule.forFeature([PqrsdAttachment, PqrsdRequest]),
     MulterModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        storage: diskStorage({
-          destination: configService.get<string>('UPLOAD_PATH', './uploads'),
-          filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-            callback(null, `${uniqueSuffix}${extname(file.originalname)}`);
-          },
-        }),
+        storage: memoryStorage(),
         limits: {
           fileSize: configService.get<number>('MAX_FILE_SIZE', 10 * 1024 * 1024), // 10MB
         },

@@ -2,6 +2,29 @@
 
 API REST completa desarrollada en NestJS para la gestión de PQRSD (Peticiones, Quejas, Reclamos, Sugerencias y Denuncias) para organizaciones colombianas.
 
+## 🏆 Cumplimiento de Normas Internacionales
+
+Este proyecto implementa y cumple con los siguientes estándares internacionales:
+
+### 📋 Normas ISO/IEEE Aplicadas
+- **ISO 25010**: Calidad del producto de software
+- **ISO 29148**: Ingeniería de requisitos
+- **IEEE 830**: Especificación de requisitos de software
+- **ISO 12207**: Procesos del ciclo de vida del software
+
+### 🚀 Prácticas Ágiles Adoptadas
+- **Metodología Scrum**: Sprints, roles definidos, ceremonias
+- **Desarrollo Guiado por Pruebas (TDD/BDD)**
+- **Integración Continua / Despliegue Continuo (CI/CD)**
+- **Code Reviews y Pair Programming**
+
+### 📚 Documentación de Cumplimiento
+- [`docs/standards-compliance.md`](docs/standards-compliance.md) - Cumplimiento general de normas
+- [`docs/srs-ieee830.md`](docs/srs-ieee830.md) - Especificación de requisitos IEEE 830
+- [`docs/quality-assurance-plan.md`](docs/quality-assurance-plan.md) - Plan de calidad ISO 25010
+- [`docs/agile-practices.md`](docs/agile-practices.md) - Prácticas ágiles implementadas
+- [`docs/implementation-summary.md`](docs/implementation-summary.md) - Resumen de implementación
+
 ## 🚀 Características Principales
 
 - **Autenticación JWT** con roles y permisos
@@ -17,6 +40,7 @@ API REST completa desarrollada en NestJS para la gestión de PQRSD (Peticiones, 
 
 - Node.js 18+
 - PostgreSQL 12+
+- Docker y Docker Compose
 - npm o yarn
 
 ## 🛠️ Instalación
@@ -44,9 +68,33 @@ cp .env.example .env
 npm run migration:run
 ```
 
-6. Inicia la aplicación:
+6. **Inicia MinIO y la aplicación:**
 ```bash
 npm run start:dev
+```
+
+Este comando iniciará automáticamente:
+- **MinIO** en `http://localhost:9000` (API) y `http://localhost:9001` (Consola)
+- **Aplicación NestJS** en `http://localhost:3001`
+
+### 🐳 MinIO Setup
+
+El sistema utiliza MinIO para el almacenamiento de archivos adjuntos. La configuración incluye:
+
+- **Bucket**: `pqrsd`
+- **Credenciales**: admin/admin123
+- **Organización**: Archivos organizados por número de radicado (ej: `PQRSD-2025-000010/`)
+
+Para acceder a la consola de MinIO:
+- URL: `http://localhost:9001`
+- Usuario: `admin`
+- Contraseña: `admin123`
+
+### 🛑 Detener Servicios
+
+Para detener MinIO y la aplicación:
+```bash
+npm run stop:docker
 ```
 
 ## 🏗️ Arquitectura

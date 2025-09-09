@@ -13,6 +13,7 @@ import { PqrsdQueryDto } from './dto/pqrsd-query.dto';
 import { PqrsdType } from '../common/enums/pqrsd-type.enum';
 import { PqrsdStatus } from '../common/enums/pqrsd-status.enum';
 import { NotificationsService } from '../notifications/notifications.service';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class PqrsdService {
@@ -26,6 +27,7 @@ export class PqrsdService {
     @InjectRepository(PqrsdStatusHistory)
     private statusHistoryRepository: Repository<PqrsdStatusHistory>,
     private notificationsService: NotificationsService,
+    private filesService: FilesService,
   ) {}
 
   async create(createPqrsdDto: CreatePqrsdDto): Promise<PqrsdRequest> {
@@ -277,6 +279,33 @@ export class PqrsdService {
     }
 
     return dueDate;
+  }
+
+  async remove(id: string): Promise<void> {
+    const pqrsd = await this.pqrsdRepository.findOne({ where: { id } });
+    if (!pqrsd) {
+      throw new NotFoundException('PQRSD no encontrada');
+    }
+
+    // Eliminar archivos adjuntos de MinIO y BD
+    const attachments = await this.attachmentRepository.find({ where: { pqrsdId: id } });
+    for (const attachment of attachments) {
+      try {
+        await this.filesService.deleteAttachment(attachment.id);
+      } catch (error) {
+        // Log error but continue
+        console.error(`Error eliminando archivo ${attachment.id}:`, error);
+      }
+    }
+
+    // Eliminar comentarios
+    await this.commentRepository.delete({ pqrsdId: id });
+
+    // Eliminar historial de estados
+    await this.statusHistoryRepository.delete({ pqrsdId: id });
+
+    // Eliminar la PQRSD
+    await this.pqrsdRepository.remove(pqrsd);
   }
 
   private validateStatusTransition(currentStatus: PqrsdStatus, newStatus: PqrsdStatus): void {
