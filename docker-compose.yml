@@ -5,11 +5,52 @@ services:
     image: quay.io/minio/minio:latest
     container_name: minio
     ports:
-      - "9000:9000"
-      - "9090:9090"
+      - "9000:9000"    # API
+      - "9090:9090"    # Consola
     environment:
       MINIO_ROOT_USER: admin
       MINIO_ROOT_PASSWORD: admin123
     volumes:
       - ./data:/data
     command: server /data --console-address ":9090"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: backend
+    depends_on:
+      minio:
+        condition: service_healthy
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: "24h"
+
+      PORT: "3001"
+      NODE_ENV: "production"
+
+      UPLOAD_PATH: "./uploads"
+      MAX_FILE_SIZE: "10485760"
+      ALLOWED_FILE_TYPES: "pdf,doc,docx,jpg,jpeg,png"
+
+      MINIO_ENDPOINT: "minio"
+      MINIO_PORT: "9000"
+      MINIO_USE_SSL: "false"
+      MINIO_ACCESS_KEY: "admin"
+      MINIO_SECRET_KEY: "admin123"
+      MINIO_BUCKET: "pqrsd"
+
+      THROTTLE_TTL: "60000"
+      THROTTLE_LIMIT: "100"
+
+      MAILPIT: "true"
+      SMTP_HOST: "127.0.0.1"
+      SMTP_PORT: "1025"
+      FROM_EMAIL: "noreply@pqrsd.com"
